@@ -7,8 +7,10 @@ import {Timelock} from "../contracts/Timelock.sol";
 
 contract AirdropTest is BaseTest {
     address ADMIN = 0xF60849FFe3CbF162d614D5f87bB5E20C074b5B91;
+    address RECEIVER = address(0x8888);
     uint256 MIN_DELAY = 3 days;
     uint256 LOCKED_AMOUNT = 180_000_000 ether;
+    uint256 WITHDRAW_AMOUNT = 1_000_000 ether;
 
     Lockup public lockup;
     Timelock public timelock;
@@ -29,17 +31,94 @@ contract AirdropTest is BaseTest {
         vm.stopPrank();
     }
 
-    function testNonTimelockCannotWithdraw() public {}
+    function testNonTimelockCannotWithdraw() public {
+        vm.startPrank(ADMIN);
+        vm.expectRevert();
+        lockup.withdraw(ADMIN, 1 wei);
+        vm.stopPrank();
+    }
 
-    function testAdminCanProposeToTimelock() public {}
+    function testAdminCanProposeToTimelock() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        bytes32 id = timelock.hashOperation(address(lockup), 0, data, bytes32(""), bytes32(""));
+        assertEq(timelock.getTimestamp(id), block.timestamp + MIN_DELAY);
+        vm.stopPrank();
+    }
 
-    function testAdminCannotProposeOverWithdraw() public {}
+    function testNonAdminCannotProposeToTimelock() public {
+        vm.startPrank(RECEIVER);
+        vm.expectRevert();
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.stopPrank();
+    }
 
-    function testNonAdminCannotProposeToTimelock() public {}
+    function testAdminCanExcuteToTimelockAfterDelay() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        assertEq(particleToken.balanceOf(RECEIVER), WITHDRAW_AMOUNT);
+        vm.stopPrank();
+    }
 
-    function testAdminCanExcuteToTimelockAfterDelay() public {}
+    function testAdminCannotOverWithdrawAfterDelay() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT + 1);
+        vm.expectRevert();
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.stopPrank();
+    }
 
-    function testAdminCannotExcuteToTimelockBeforeDelay() public {}
+    function testAdminCannotExcuteToTimelockTwice() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.expectRevert();
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.stopPrank();
+    }
 
-    function testNonAdminCannotExecute() public {}
+    function testAdminCannotExcuteToTimelockBeforeDelay() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY - 1);
+        data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT + 1);
+        vm.expectRevert();
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.stopPrank();
+    }
+
+    function testAdminCannotExecuteOverWithdraw() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, LOCKED_AMOUNT + 1 wei);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        vm.expectRevert();
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.stopPrank();
+    }
+
+    function testNonAdminCannotExecute() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        vm.stopPrank();
+        vm.startPrank(RECEIVER);
+        vm.expectRevert();
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.stopPrank();
+    }
+
+    function testAdminCanScheduleExecuteMultipleTimes() public {}
 }
