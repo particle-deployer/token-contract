@@ -11,6 +11,7 @@ import {BlastManager} from "./libraries/BlastManager.sol";
 
 contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
     /* Immutables */
+    // solhint-disable-next-line var-name-mixedcase
     address public TOKEN;
 
     /* Storage */
