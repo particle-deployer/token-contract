@@ -18,3 +18,6 @@ docs/
 
 # Data folder
 data/
+
+# Node modules
+node_modules/

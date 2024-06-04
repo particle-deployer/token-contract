@@ -1,0 +1,11 @@
+{
+  "name": "token",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Particle-Platforms/blast-yield-gas-claim.git",
+  "license": "MIT",
+  "dependencies": {
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.3.11"
+  }
+}
