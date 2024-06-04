@@ -1,18 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
-import {Test, console} from "forge-std/Test.sol";
-import {ParticleToken} from "../contracts/Token.sol";
+import {BaseTest} from "./Base.t.sol";
 
 address constant DEV = address(0x42);
 
-contract TokenTest is Test {
-    ParticleToken public particleToken;
-
-    function setUp() public {
-        vm.startPrank(DEV);
-        particleToken = new ParticleToken();
-        vm.stopPrank();
+contract TokenTest is BaseTest {
+    function setUp() public override {
+        super.setUp();
     }
 
     function testTotalSupply() public {
