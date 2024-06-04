@@ -5,7 +5,8 @@
   "repository": "git@github.com:Particle-Platforms/blast-yield-gas-claim.git",
   "license": "MIT",
   "dependencies": {
-    "keccak256": "^1.0.6",
-    "merkletreejs": "^0.3.11"
+    "@openzeppelin/merkle-tree": "^1.0.6",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0"
   }
 }

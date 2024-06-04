@@ -1,5 +1,4 @@
-const { MerkleTree } = require("merkletreejs");
-const keccak256 = require("keccak256");
+const { StandardMerkleTree } = require("@openzeppelin/merkle-tree");
 const fs = require("fs");
 const csv = require("csv-parser");
 const { createObjectCsvWriter } = require("csv-writer");
@@ -31,34 +30,33 @@ const writeCSV = (filePath, data) => {
   return csvWriter.writeRecords(data);
 };
 
-const encodePacked = (address, entitlement) => {
-  const addressPadded = address.toLowerCase();
-  const entitlementHex = BigInt(entitlement).toString(16);
-  const entitlementPadded = entitlementHex.padStart(64, "0");
-  return addressPadded + entitlementPadded;
-};
-
 const processMerkleTree = async () => {
   try {
-    const amounts = await readCSV(inputFilePath);
-    const leaves = amounts.map((user) => keccak256(encodePacked(user.address, user.amount)));
-    const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-
-    const root = tree.getRoot().toString("hex");
-    console.log("Merkle Root:", root);
-
-    const proofs = amounts.map((user, index) => {
-      const leaf = leaves[index];
-      const proof = tree.getProof(leaf).map((p) => p.data.toString("hex"));
-      return {
-        address: user.address,
-        amount: user.amount,
-        proof: proof.join(","),
-      };
+    // (1) read from CSV file
+    const csvInput = await readCSV(inputFilePath);
+    const values = csvInput.map((value) => {
+      return [value.address.toLowerCase(), value.amount];
     });
 
+    // (2) create Merkle tree
+    const tree = StandardMerkleTree.of(values, ["address", "uint256"]);
+
+    // (3) generate Merkle root
+    console.log("Merkle Root:", tree.root);
+
+    // (4) write the tree into csv
+    const proofs = [];
+    for (const [i, v] of tree.entries()) {
+      const proof = tree.getProof(i);
+      proofs.push({
+        address: v[0],
+        amount: v[1],
+        proof: proof,
+      });
+    }
     await writeCSV(outputFilePath, proofs);
-    console.log("Proofs written to CSV file", outputFilePath);
+
+    console.log("Merkle tree written to file", outputFilePath);
   } catch (error) {
     console.error("Error processing Merkle tree:", error);
   }

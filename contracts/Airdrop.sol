@@ -14,10 +14,10 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
     address public TOKEN;
 
     /* Storage */
-    bytes32 public merkleRoot;
+    bytes32 private _merkleRoot;
 
     /* Storage */
-    mapping(address => uint256) public claimed;
+    mapping(address => uint256) private _claimed;
 
     /* Events */
     event Claimed(address user, uint256 amount);
@@ -32,7 +32,7 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
      * @param root The new merkle root
      */
     function updateMerkleRoot(bytes32 root) external onlyOwner {
-        merkleRoot = root;
+        _merkleRoot = root;
     }
 
     /**
@@ -40,13 +40,13 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
      * @param amount The amount of tokens this user can ever claim
      */
     function claim(uint256 amount, bytes32[] calldata proof) external nonReentrant {
-        require(amount > claimed[msg.sender], "Airdrop: already claimed all");
+        require(amount > _claimed[msg.sender], "Airdrop: already claimed all");
 
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
-        require(MerkleProof.verify(proof, merkleRoot, leaf), "Airdrop: invalid proof");
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, amount))));
+        require(MerkleProof.verify(proof, _merkleRoot, leaf), "Airdrop: invalid proof");
 
-        uint256 toClaim = amount - claimed[msg.sender];
-        claimed[msg.sender] = amount;
+        uint256 toClaim = amount - _claimed[msg.sender];
+        _claimed[msg.sender] = amount;
         IERC20(TOKEN).transfer(msg.sender, toClaim);
 
         emit Claimed(msg.sender, toClaim);
