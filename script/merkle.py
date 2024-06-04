@@ -25,16 +25,16 @@ def write_csv(file_path, proofs):
         for proof in proofs:
             writer.writerow([proof['address'], proof['amount'], ','.join(proof['proof'])])
 
-def abi_encode(address, amount):
+def abi_encode_packed(address, amount):
     return b''.join([
-        bytes.fromhex(address[2:].zfill(64)),
-        amount.to_bytes(32, byteorder='big')
+        bytes.fromhex(address[2:].zfill(40)),  # 20 bytes (40 hex chars)
+        amount.to_bytes(32, byteorder='big')   # 32 bytes
     ])
 
 def keccak256(data):
     k = keccak.new(digest_bits=256)
     k.update(data)
-    return k.hexdigest()  # Return hex string for compatibility with MerkleTools
+    return k.digest()
 
 class Keccak256MerkleTools(merkletools.MerkleTools):
     def _hash_function(self, value):
@@ -45,7 +45,7 @@ def main():
     mt = Keccak256MerkleTools()
 
     for address, amount in data:
-        leaf = abi_encode(address, amount).hex()  # Convert to hex string
+        leaf = abi_encode_packed(address, amount).hex()  # Convert to hex string
         mt.add_leaf(leaf, True)
 
     mt.make_tree()
