@@ -23,7 +23,7 @@ Airdrop contract to distribute tokens to a list of addresses using Merkle tree.
 ### Unit Tests
 
 ```
-forge test -vv
+forge test -vv --fork-url https://rpc.ankr.com/blast --fork-block-number 4000000
 ```
 
 ### Deployment
