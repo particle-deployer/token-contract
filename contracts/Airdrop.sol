@@ -6,10 +6,13 @@ import {ReentrancyGuard} from "../lib/openzeppelin-contracts/contracts/utils/Ree
 import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Ownable2Step} from "../lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {SafeERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import {BlastManager} from "./libraries/BlastManager.sol";
 
 contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
+    using SafeERC20 for IERC20;
+
     /* Immutables */
     address public TOKEN;
 
@@ -47,7 +50,7 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
 
         uint256 toClaim = amount - _claimed[msg.sender];
         _claimed[msg.sender] = amount;
-        IERC20(TOKEN).transfer(msg.sender, toClaim);
+        IERC20(TOKEN).safeTransfer(msg.sender, toClaim);
 
         emit Claimed(msg.sender, toClaim);
     }
