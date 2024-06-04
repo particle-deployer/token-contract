@@ -35,6 +35,6 @@ forge script script/Deploy.s.sol --rpc-url 'https://rpc.ankr.com/blast' --privat
 ### Generate Merkle Proof
 
 ```
-pip3 install --user merkletools eth_utils
+pip3 install --user merkletools eth_utils pycryptodome
 python3 script/merkle.py
 ```

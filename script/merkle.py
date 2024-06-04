@@ -1,6 +1,7 @@
 import csv
 import argparse
 import merkletools
+from Crypto.Hash import keccak
 from eth_utils import to_hex
 
 parser = argparse.ArgumentParser(description='Merkle Tree Generator')
@@ -30,9 +31,18 @@ def abi_encode(address, amount):
         amount.to_bytes(32, byteorder='big')
     ])
 
+def keccak256(data):
+    k = keccak.new(digest_bits=256)
+    k.update(data)
+    return k.digest()
+
+class Keccak256MerkleTools(merkletools.MerkleTools):
+    def _hash_function(self, value):
+        return keccak256(value)
+
 def main():
     data = read_csv(conf.input_file)
-    mt = merkletools.MerkleTools(hash_type="keccak256")
+    mt = Keccak256MerkleTools()
 
     for address, amount in data:
         leaf = abi_encode(address, amount)
