@@ -120,5 +120,21 @@ contract AirdropTest is BaseTest {
         vm.stopPrank();
     }
 
-    function testAdminCanScheduleExecuteMultipleTimes() public {}
+    function testAdminCanScheduleExecuteMultipleTimes() public {
+        vm.startPrank(ADMIN);
+        bytes memory data = abi.encodeWithSelector(Lockup.withdraw.selector, RECEIVER, WITHDRAW_AMOUNT);
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32(""), MIN_DELAY);
+        bytes32 id1 = timelock.hashOperation(address(lockup), 0, data, bytes32(""), bytes32(""));
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32(""));
+
+        timelock.schedule(address(lockup), 0, data, bytes32(""), bytes32("salt"), MIN_DELAY);
+        bytes32 id2 = timelock.hashOperation(address(lockup), 0, data, bytes32(""), bytes32("salt"));
+        assertNotEq(id1, id2);
+        vm.warp(block.timestamp + MIN_DELAY + 1);
+        timelock.execute(address(lockup), 0, data, bytes32(""), bytes32("salt"));
+
+        assertEq(particleToken.balanceOf(RECEIVER), WITHDRAW_AMOUNT * 2);
+        vm.stopPrank();
+    }
 }
