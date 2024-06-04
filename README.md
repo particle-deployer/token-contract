@@ -31,3 +31,10 @@ forge test -vv --fork-url https://rpc.ankr.com/blast --fork-block-number 4000000
 ```
 forge script script/Deploy.s.sol --rpc-url 'https://rpc.ankr.com/blast' --private-key $PRIVATE_KEY --broadcast -vv
 ```
+
+### Generate Merkle Proof
+
+```
+pip3 install --user merkletools eth_utils
+python3 script/merkle.py
+```
