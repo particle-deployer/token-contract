@@ -158,4 +158,37 @@ contract AirdropTest is BaseTest {
         airdrop.claim(AMOUNT1, PROOF1);
         vm.stopPrank();
     }
+
+    function testNonAdminCannotSetStartTime() public {
+        vm.startPrank(USER1);
+        vm.expectRevert();
+        airdrop.setStartTime(block.timestamp);
+        vm.stopPrank();
+    }
+
+    function testCannotClaimBeforeStartTime() public {
+        vm.startPrank(DEV);
+        particleToken.transfer(address(airdrop), AMOUNT1);
+        airdrop.setStartTime(block.timestamp + 1);
+        vm.stopPrank();
+
+        vm.startPrank(USER1);
+        vm.expectRevert("Airdrop: not started");
+        airdrop.claim(AMOUNT1, PROOF1);
+        vm.stopPrank();
+    }
+
+    function testCanClaimAfterStartTime() public {
+        vm.startPrank(DEV);
+        particleToken.transfer(address(airdrop), AMOUNT1);
+        airdrop.setStartTime(block.timestamp + 1);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 2);
+
+        vm.startPrank(USER1);
+        airdrop.claim(AMOUNT1, PROOF1);
+        assertEq(particleToken.balanceOf(USER1), AMOUNT1);
+        vm.stopPrank();
+    }
 }

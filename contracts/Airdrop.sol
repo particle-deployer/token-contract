@@ -16,8 +16,9 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
     /* Immutables */
     address public TOKEN;
 
-    /* Storage */
+    /* Variable */
     bytes32 private _merkleRoot;
+    uint256 public startTime;
 
     /* Storage */
     mapping(address => uint256) private _claimed;
@@ -39,10 +40,18 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
     }
 
     /**
+     * @notice Set the start time for the airdrop
+     * @param _startTime The new start time
+     */
+    function setStartTime(uint256 _startTime) external onlyOwner {
+        startTime = _startTime;
+    }
+
+    /**
      * @notice Claim tokens from the airdrop
      * @param amount The amount of tokens this user can ever claim
      */
-    function claim(uint256 amount, bytes32[] calldata proof) external nonReentrant {
+    function claim(uint256 amount, bytes32[] calldata proof) external onlyStarted nonReentrant {
         require(amount > _claimed[msg.sender], "Airdrop: already claimed all");
 
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, amount))));
@@ -53,5 +62,12 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
         IERC20(TOKEN).safeTransfer(msg.sender, toClaim);
 
         emit Claimed(msg.sender, toClaim);
+    }
+
+    modifier onlyStarted() {
+        if (startTime > 0) {
+            require(block.timestamp >= startTime, "Airdrop: not started");
+        }
+        _;
     }
 }
