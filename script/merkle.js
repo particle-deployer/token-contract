@@ -1,15 +1,35 @@
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
+const fs = require("fs");
+const csv = require("csv-parser");
+const { createObjectCsvWriter } = require("csv-writer");
 
-const amounts1 = [
-  { address: "0x0000000000000000000000000000000000004242", entitlement: "100000000000000000000" },
-  { address: "0x0000000000000000000000000000000000006969", entitlement: "4269000000000000000000" },
-];
+const inputFilePath = "./data/allocation.csv";
+const outputFilePath = "./data/airdrop.csv";
 
-const amounts2 = [
-  { address: "0x0000000000000000000000000000000000004242", entitlement: "200000000000000000000" },
-  { address: "0x0000000000000000000000000000000000006969", entitlement: "4269000000000000000001" },
-];
+const readCSV = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => results.push(data))
+      .on("end", () => resolve(results))
+      .on("error", (error) => reject(error));
+  });
+};
+
+const writeCSV = (filePath, data) => {
+  const csvWriter = createObjectCsvWriter({
+    path: filePath,
+    header: [
+      { id: "address", title: "address" },
+      { id: "amount", title: "amount" },
+      { id: "proof", title: "proof" },
+    ],
+  });
+
+  return csvWriter.writeRecords(data);
+};
 
 const encodePacked = (address, entitlement) => {
   const addressPadded = address.toLowerCase();
@@ -18,35 +38,30 @@ const encodePacked = (address, entitlement) => {
   return addressPadded + entitlementPadded;
 };
 
-// Generate leaves from users data
-const leaves1 = amounts1.map((user) => keccak256(encodePacked(user.address, user.entitlement)));
-const leaves2 = amounts2.map((user) => keccak256(encodePacked(user.address, user.entitlement)));
+const processMerkleTree = async () => {
+  try {
+    const amounts = await readCSV(inputFilePath);
+    const leaves = amounts.map((user) => keccak256(encodePacked(user.address, user.amount)));
+    const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 
-// Create the Merkle tree
-const tree1 = new MerkleTree(leaves1, keccak256, { sortPairs: true });
-const tree2 = new MerkleTree(leaves2, keccak256, { sortPairs: true });
+    const root = tree.getRoot().toString("hex");
+    console.log("Merkle Root:", root);
 
-// Get the Merkle root
-const root1 = tree1.getRoot().toString("hex");
-console.log("Merkle Root for mapping 1:", root1);
-const root2 = tree2.getRoot().toString("hex");
-console.log("Merkle Root for mapping 2:", root2);
-console.log("");
+    const proofs = amounts.map((user, index) => {
+      const leaf = leaves[index];
+      const proof = tree.getProof(leaf).map((p) => p.data.toString("hex"));
+      return {
+        address: user.address,
+        amount: user.amount,
+        proof: proof.join(","),
+      };
+    });
 
-// Generate and print the Merkle proof for each user
-console.log("Tree 1");
-amounts1.forEach((user, index) => {
-  const leaf = leaves1[index];
-  const proof = tree1.getProof(leaf).map((p) => p.data.toString("hex"));
-  console.log(`Proof for ${user.address}:`, proof);
-});
-console.log("");
+    await writeCSV(outputFilePath, proofs);
+    console.log("Proofs written to CSV file", outputFilePath);
+  } catch (error) {
+    console.error("Error processing Merkle tree:", error);
+  }
+};
 
-// Generate and print the Merkle proof for each user
-console.log("Tree 2");
-amounts2.forEach((user, index) => {
-  const leaf = leaves2[index];
-  const proof = tree2.getProof(leaf).map((p) => p.data.toString("hex"));
-  console.log(`Proof for ${user.address}:`, proof);
-});
-console.log("");
+processMerkleTree();
