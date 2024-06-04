@@ -34,7 +34,7 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
 
     /**
      * @notice Claim tokens from the airdrop
-     * @param amount The amount of tokens this user can ever claim
+     * @param amount The amount of tokens this user can claim
      */
     function claim(
         uint256 amount,
