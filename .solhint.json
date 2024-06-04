@@ -4,6 +4,7 @@
     "compiler-version": ["error",">=0.8.0"],
     "not-rely-on-time": "off",
     "func-name-mixedcase": "off",
-    "no-console": "off"
+    "no-console": "off",
+    "custom-errors": "off"
   }
 }

@@ -36,18 +36,12 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
      * @notice Claim tokens from the airdrop
      * @param amount The amount of tokens this user can claim
      */
-    function claim(
-        uint256 amount,
-        bytes32[] calldata proof
-    ) external nonReentrant {
+    function claim(uint256 amount, bytes32[] calldata proof) external nonReentrant {
         require(amount > 0, "Airdrop: amount is 0");
         require(!claimed[msg.sender], "Airdrop: already claimed");
 
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
-        require(
-            MerkleProof.verify(proof, merkleRoot, leaf),
-            "Airdrop: invalid proof"
-        );
+        require(MerkleProof.verify(proof, merkleRoot, leaf), "Airdrop: invalid proof");
 
         claimed[msg.sender] = true;
 
