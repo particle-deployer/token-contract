@@ -1,66 +1,33 @@
-## Foundry
+## Particle Token Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+There are three components of the token contracts: token, lockup, and airdrop.
 
-Foundry consists of:
+### Token
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Standard ERC20 token with the following features:
 
-## Documentation
+- Name: Particle
+- Symbol: PTC
+- Max supply of 200,000,000
+- 18 decimal
+- Max supply minted at deployment
 
-https://book.getfoundry.sh/
+### Lockup
 
-## Usage
+Lockup contract to lock up unvested tokens. The contract is Ownable, controlled by a timelock.
 
-### Build
+### Airdrop
 
-```shell
-$ forge build
+Airdrop contract to distribute tokens to a list of addresses using Merkle tree.
+
+### Unit Tests
+
+```
+forge test -vv
 ```
 
-### Test
+### Deployment
 
-```shell
-$ forge test
 ```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+forge script script/Deploy.s.sol --rpc-url 'https://rpc.ankr.com/blast' --private-key $PRIVATE_KEY --broadcast -vv
 ```
