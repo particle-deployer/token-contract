@@ -34,7 +34,7 @@ def abi_encode(address, amount):
 def keccak256(data):
     k = keccak.new(digest_bits=256)
     k.update(data)
-    return k.digest()
+    return k.hexdigest()  # Return hex string for compatibility with MerkleTools
 
 class Keccak256MerkleTools(merkletools.MerkleTools):
     def _hash_function(self, value):
@@ -45,13 +45,13 @@ def main():
     mt = Keccak256MerkleTools()
 
     for address, amount in data:
-        leaf = abi_encode(address, amount)
+        leaf = abi_encode(address, amount).hex()  # Convert to hex string
         mt.add_leaf(leaf, True)
 
     mt.make_tree()
 
     root = mt.get_merkle_root()
-    print(f"Merkle Root: {to_hex(root)}")
+    print(f"Merkle Root: {root}")
 
     proofs = []
     for i, (address, amount) in enumerate(data):
@@ -59,7 +59,7 @@ def main():
         proofs.append({
             'address': address,
             'amount': amount,
-            'proof': [to_hex(p['right'] if 'right' in p else p['left']) for p in proof]
+            'proof': [p['right'] if 'right' in p else p['left'] for p in proof]
         })
 
     write_csv(conf.output_file, proofs)
