@@ -2,7 +2,7 @@
 
 There are 4 components of the token contracts: token, lockup, airdrop and staking.
 
-## Token
+### Token
 
 Standard ERC20 token with the following features:
 
