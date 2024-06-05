@@ -1,8 +1,8 @@
-## Particle Token Contracts
+# Particle Token Contracts
 
-There are three components of the token contracts: token, lockup, and airdrop.
+There are 4 components of the token contracts: token, lockup, airdrop and staking.
 
-### Token
+## Token
 
 Standard ERC20 token with the following features:
 
@@ -20,19 +20,24 @@ Lockup contract to lock up unvested tokens. The contract is Ownable, controlled 
 
 Airdrop contract to distribute tokens to a list of addresses using Merkle tree.
 
-### Unit Tests
+### Staking
+
+Staking contract to stake tokens and account for the staked amount with timespan.
+
+
+## Unit Tests
 
 ```
 forge test -vv --fork-url https://rpc.ankr.com/blast --fork-block-number 4000000
 ```
 
-### Deployment
+## Deployment
 
 ```
 forge script script/Deploy.s.sol --rpc-url 'https://rpc.ankr.com/blast' --private-key $PRIVATE_KEY --broadcast -vv
 ```
 
-### Generate Merkle Proof
+## Generate Merkle Proof
 
 ```
 node script/merkle.js
