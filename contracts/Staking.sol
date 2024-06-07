@@ -27,7 +27,7 @@ contract Staking is ReentrancyGuard, Multicall, BlastManager {
     event Withdraw(address indexed user, address indexed to, uint256 amount);
 
     constructor(address token) {
-        require(token != address(0), "Airdrop: invalid token address");
+        require(token != address(0), "Staking: invalid token address");
         TOKEN = token;
     }
 

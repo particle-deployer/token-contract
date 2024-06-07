@@ -45,6 +45,7 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
      * @param _startTime The new start time
      */
     function setStartTime(uint256 _startTime) external onlyOwner {
+        require(_startTime > block.timestamp, "Airdrop: invalid start time");
         startTime = _startTime;
     }
 

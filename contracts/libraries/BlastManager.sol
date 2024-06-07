@@ -5,8 +5,7 @@ import {IBlast} from "../interfaces/IBlast.sol";
 import {IBlastPoints} from "../interfaces/IBlastPoints.sol";
 
 contract BlastManager {
-    IBlast public constant BLAST =
-        IBlast(0x4300000000000000000000000000000000000002);
+    IBlast public constant BLAST = IBlast(0x4300000000000000000000000000000000000002);
     address public manager;
 
     modifier onlyManager() {
@@ -19,10 +18,7 @@ contract BlastManager {
         BLAST.configureClaimableGas();
     }
 
-    function claimGas(
-        address recipient,
-        bool isMax
-    ) external onlyManager returns (uint256) {
+    function claimGas(address recipient, bool isMax) external onlyManager returns (uint256) {
         if (isMax) {
             return BLAST.claimMaxGas(address(this), recipient);
         } else {
@@ -31,6 +27,7 @@ contract BlastManager {
     }
 
     function setManager(address _manager) external onlyManager {
+        require(_manager != address(0), "BlastManager: invalid token address");
         manager = _manager;
     }
 
@@ -38,10 +35,7 @@ contract BlastManager {
         IBlast(blastGas).configureClaimableGas();
     }
 
-    function setPointsOperator(
-        address blastPoints,
-        address operator
-    ) external onlyManager {
+    function setPointsOperator(address blastPoints, address operator) external onlyManager {
         IBlastPoints(blastPoints).configurePointsOperator(operator);
     }
 }

@@ -20,7 +20,7 @@ contract Lockup is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
 
     /* Constructor */
     constructor(address token, address owner) Ownable(owner) {
-        require(token != address(0), "Airdrop: invalid token address");
+        require(token != address(0), "Lockup: invalid token address");
         TOKEN = token;
     }
 
