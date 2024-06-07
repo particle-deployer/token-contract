@@ -15,6 +15,9 @@ contract Lockup is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
     /* Immutables */
     address public TOKEN;
 
+    /* Events */
+    event Withdraw(address indexed to, uint256 amount);
+
     /* Constructor */
     constructor(address token, address owner) Ownable(owner) {
         require(token != address(0), "Airdrop: invalid token address");
@@ -28,5 +31,6 @@ contract Lockup is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
      */
     function withdraw(address to, uint256 amount) external onlyOwner nonReentrant {
         IERC20(TOKEN).safeTransfer(to, amount);
+        emit Withdraw(to, amount);
     }
 }
