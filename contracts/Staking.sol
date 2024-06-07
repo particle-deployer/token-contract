@@ -58,10 +58,10 @@ contract Staking is ReentrancyGuard, Multicall, BlastManager {
      * @param amount The amount of tokens to deposit
      */
     function deposit(uint256 amount) external nonReentrant {
-        IERC20(TOKEN).safeTransferFrom(msg.sender, address(this), amount);
-
         _syncStake(msg.sender);
         stakes[msg.sender].principal += amount;
+
+        IERC20(TOKEN).safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, amount);
     }
