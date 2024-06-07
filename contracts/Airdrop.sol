@@ -28,6 +28,7 @@ contract Airdrop is Ownable2Step, ReentrancyGuard, Multicall, BlastManager {
 
     /* Constructor */
     constructor(address token) Ownable(msg.sender) {
+        require(token != address(0), "Airdrop: invalid token address");
         TOKEN = token;
     }
 
